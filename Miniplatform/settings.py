@@ -81,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'minipt',
         'HOST': '127.0.0.1',
-        'USER': 'admin',
+        'USER': 'mini',
         'PASSWORD': 'wifi5632',
         'PORT': '3306',
     }
