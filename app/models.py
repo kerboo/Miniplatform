@@ -6,10 +6,10 @@ from django.db import models
 #from rest_framework import 
     
 ASSET_TYPE = (
-    (0,u'物理机'),
-    (1,u'虚拟机'),
-    (2,'网络设备'),
-    (3,'其他'),
+    (1,u'物理机'),
+    (2,u'虚拟机'),
+    (3,'网络设备'),
+    (4,'其他'),
     )
 ASSET_STATUS = (
     (1,'未使用'),

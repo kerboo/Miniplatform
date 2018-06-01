@@ -8,8 +8,32 @@ from rest_framework import status
 from django.http.response import HttpResponse
 
 
+
+
 def Index(request):
-    hh = "myhomepage"        
+    host_total_count=Assets.objects.all().count()
+    host_physical_count=Assets.objects.filter(host_style=1).count()
+    host_vtrul_count=Assets.objects.filter(host_style=2).count()
+    net_hardware_count=Assets.objects.filter(host_style=2).count()
+    rep_data = Assets.objects.all()
+    obj_list = []  
+    for x in rep_data:
+        obj_dict = {}
+        obj_dict['ip'] = x.ipaddr
+        monitor_data_obj = MonitorDatas.objects.filter(hostid_id=x.id).latest('id')
+        if monitor_data_obj:
+            obj_dict['cpu'] = monitor_data_obj.cpu_useage
+            obj_dict['memory'] = monitor_data_obj.memory_useage
+
+            obj_dict['uptime'] = monitor_data_obj.run_status
+            obj_dict['record_time'] = monitor_data_obj.date
+        else:
+            obj_dict['cpu'] = 'None'
+            obj_dict['memory'] = 'None'
+            obj_dict['uptime'] = 'None'
+            obj_dict['record_time'] = 'None'
+            
+        obj_list.append(obj_dict)  
     return render(request,'index.html',locals())
 
 
