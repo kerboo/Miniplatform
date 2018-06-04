@@ -1,50 +1,65 @@
 ﻿{% extends 'base.html'%}
 {% block content %}
 
-
-    <div class="row">
-
-        <div class="col-xs-6 col-md-3 ibox">
-               <span>服务器总计: {{ host_total_count }}</span>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-3 ibox">
+                   <span>服务器总计: {{ host_total_count }}</span>
+            </div>
+            <div class="col-md-3 ibox">
+                   <span>物理机:{{ host_physical_count }} </span>
+            </div>
+            <div class="col-md-3 ibox">
+                   <span>虚拟机：{{ host_vtrul_count }}</span>
+            </div>
+            <div class="col-md-3 ibox">
+                   <span>网络设备: {{ net_hardware_count }}</span>
+            </div>
         </div>
-        <div class="col-xs-6 col-md-3 ibox">
-               <span>物理机:{{ host_physical_count }} </span>
-        </div>
-        <div class="col-xs-6 col-md-3 ibox">
-               <span>虚拟机：{{ host_vtrul_count }}</span>
-        </div>
-        <div class="col-xs-6 col-md-3 ibox">
-               <span>网络设备: {{ net_hardware_count }}</span>
-        </div>
+    </div>
+    <div class="panel-body">
+            
+        <table data-toggle="table">
+        <thead>
+           <tr>
+            <th class="text-center">#</th>
+            <th class="text-center">IP</th>
+            <th class="text-center">类型</th>
+            <th class="text-center">操作系统</th>
+            <th class="text-center">CPU</th>
+            <th class="text-center">内存</th>
+            <th class="text-center">硬盘</th>
+            <th class="text-center">状态</th>
+            <th class="text-center">更新时间</th>
+            <th class="text-center">描述</th>
+           </tr>            
+        </thead>
+            <tbody>
+            {% for obj in  rep_data %}
+              <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td class="text-center">{{ obj.ipaddr }}</td>                        
+                <td class="text-center">{{ obj.get_host_style_display }}</td>
+                <td class="text-center">{{ obj.sys_version }}</td>
+                <td class="text-center">{{ obj.cpu }}</td>
+                <td class="text-center">{{ obj.memory }}</td>
+                <td class="text-center">{{ obj.disk }}</td>
+                <td class="text-center">{{ obj.get_status_display }}</td>
+                <td class="text-center">{{ obj.date_added }}</td>
+                <td class="text-center">{{ obj.comment }}</td>
+              </tr>   
+            {% endfor %}
+            </tbody>
+        </table>
 
     </div>
+</div>
 
-    <div class="table table-bordered table-striped table-hover table-condensed">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>IP</th>
-                <th>CPU</th>
-                <th>Memory</th>
-                <th>DISK</th>
-                <th>Uptime</th>
-                <th>Update Time</th> 
-            </tr>
-        </thead>
-        <tbody>
-            {% for obj in  obj_list %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ obj.ip }}</td>                        
-                <td>{{ obj.cpu }}</td>
-                <td>{{ obj.memory }}</td>
-                <td>{{ obj.disk }}</td>
-                <td>{{ obj.uptime }}</td>
-                <td>{{ obj.record_time }}</td> 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </div> 
+
+
+
+
 
     
 

@@ -16,6 +16,11 @@ def Index(request):
     host_vtrul_count=Assets.objects.filter(host_style=2).count()
     net_hardware_count=Assets.objects.filter(host_style=2).count()
     rep_data = Assets.objects.all()
+    return render(request,'index.html',locals())
+
+
+def Host_details(request):
+    rep_data = Assets.objects.all()
     obj_list = []  
     for x in rep_data:
         obj_dict = {}
@@ -34,8 +39,6 @@ def Index(request):
             obj_dict['record_time'] = 'None'
             
         obj_list.append(obj_dict)  
-    return render(request,'index.html',locals())
-
 
 @api_view(['GET','POST'])
 def assets_list(request):

@@ -18,6 +18,11 @@ ASSET_STATUS = (
 
 WORK_STATUS = {}
 
+MYSQL_STATUS = (
+    (1,u'运行中'),
+    (2,u'已停止'),
+    )
+
 class Assets(models.Model):
     ipaddr = models.CharField(max_length=255,unique=True,verbose_name='IP')
     host_style  = models.SmallIntegerField(choices=ASSET_TYPE)
@@ -41,7 +46,7 @@ class MonitorDatas(models.Model):
     
 class MysqlInfo(models.Model):
     hostid = models.ForeignKey(Assets,blank=True, null=True,verbose_name='主机ID')
-    alive  =  models.CharField(max_length=10,blank=True,null=True,verbose_name=u'存活状态')
+    alive  =  models.IntegerField(choices=MYSQL_STATUS, blank=True, null=True, default=2, verbose_name=u"运行状态")
     connections = models.CharField(max_length=30,null=True,verbose_name=u'连接使用率')
     qps_useage = models.CharField(max_length=10,null=True,verbose_name=u'查询吞吐量')
     tps_useage = models.CharField(max_length=10,null=True,verbose_name=u'写入吞吐量')

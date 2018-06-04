@@ -5,7 +5,8 @@ register = template.Library()
 
 
 @register.filter
-def get_last_data(hostid):
-    result = MonitorDatas.objects.filter(hostid_id=hostid).latest('id') 
-    return result
+def num_covert_str(value):
+    pass
+        
+
 

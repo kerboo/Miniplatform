@@ -2,7 +2,6 @@
   margin:0px;
 }
 
-
 .content{
     position:fixed;
 	margin-top:45px;
@@ -13,17 +12,11 @@
     
 }
 
+
 .content .ibox{
-    top:5px;
-    height:90px;
-    border:1px solid green;
-    #background-color:gray;
-      
+    height:50px;
+    border-right:1px solid green;
+    width: auto;  
 }
 
-.content .tableblock{
-    margin-top:10px;
-    height:600;
-    padding-bottom:20px;
-    border: 1px solid blue;    
-}
+
