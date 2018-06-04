@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.shortcuts import render
-from app.models import   Assets, MonitorDatas
-from app.serializer import MonitorDatasSerializer,AssetsSerializer
+from app.models import   Assets, MonitorDatas,MysqlInfo
+from app.serializer import MonitorDatasSerializer,AssetsSerializer,MysqlInfoSerializer
 from rest_framework.decorators import api_view 
 from rest_framework.response import Response
 from rest_framework import status
@@ -75,12 +75,28 @@ def data_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         
+@api_view(['GET','POST'])
+def dbstat_list(request):
+    if request.method == 'GET':
+        mdata = MysqlInfo.objects.all()
+        serializer = MysqlInfoSerializer(mdata,many=True)
+        return Response(serializer.data)    
 
 
-
-
-
-
+    if request.method == 'POST':
+        req_data = request.data
+        if req_data['ip'] and req_data['alive']:
+            host_id = Assets.objects.filter(ipaddr=req_data['ip'])[0].id
+            req_data.pop('ip')
+            req_data['hostid'] =  host_id          
+        else:
+            return HttpResponse("POST argments is errors")
+                
+        serializer = MysqlInfoSerializer(data=req_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
 
 
 

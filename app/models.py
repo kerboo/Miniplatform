@@ -38,5 +38,15 @@ class MonitorDatas(models.Model):
     run_status  = models.CharField(max_length=30,null=True,verbose_name=u'运行状态')
     date = models.DateTimeField(auto_now_add=True)
     
-
+    
+class MysqlInfo(models.Model):
+    hostid = models.ForeignKey(Assets,blank=True, null=True,verbose_name='主机ID')
+    alive  =  models.CharField(max_length=10,blank=True,null=True,verbose_name=u'存活状态')
+    connections = models.CharField(max_length=30,null=True,verbose_name=u'连接使用率')
+    qps_useage = models.CharField(max_length=10,null=True,verbose_name=u'查询吞吐量')
+    tps_useage = models.CharField(max_length=10,null=True,verbose_name=u'写入吞吐量')
+    slow_query = models.CharField(max_length=30,null=True,verbose_name=u'慢查询量')
+    buffer_useage = models.CharField(max_length=30,null=True,verbose_name=u'缓存使用率')
+    buffer_hitrate = models.CharField(max_length=30,null=True,verbose_name=u'缓存命中率')
+    date = models.DateTimeField(auto_now_add=True)
     

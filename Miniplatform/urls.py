@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'^$',views.Index,name='index'),
     url(r'^addhost/',views.assets_list,name='assetslist'),
     url(r'^addline/',views.data_list,name='datalist'),
+    url(r'^mysqlline/',views.dbstat_list,name='dblist'),
 ]

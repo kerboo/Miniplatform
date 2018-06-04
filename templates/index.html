@@ -1,52 +1,52 @@
 ﻿{% extends 'base.html'%}
 {% block content %}
 
-        <div class="content">
-            <div class="row">
 
-                <div class="col-xs-6 col-md-3 ibox">
-                       <span>服务器总计: {{ host_total_count }}</span>
-                </div>
-                <div class="col-xs-6 col-md-3 ibox">
-                       <span>物理机:{{ host_physical_count }} </span>
-                </div>
-                <div class="col-xs-6 col-md-3 ibox">
-                       <span>虚拟机：{{ host_vtrul_count }}</span>
-                </div>
-                <div class="col-xs-6 col-md-3 ibox">
-                       <span>网络设备: {{ net_hardware_count }}</span>
-                </div>
+    <div class="row">
 
-            </div>
-            <div class="tableblock">
-                <div class="table table-bordered ">
-                    <thead>
-                    <tr>
-                        <td>#</td>
-                        <td>IP</td>
-                        <td>CPU</td>
-                        <td>Memory</td>
-                        <td>DISK</td>
-                        <td>Uptime</td>
-                        <td>Update Time</td> 
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for obj in  obj_list %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ obj.ip }}</td>                        
-                        <td>{{ obj.cpu }}</td>
-                        <td>{{ obj.memory }}</td>
-                        <td>{{ obj.disk }}</td>
-                        <td>{{ obj.uptime }}</td>
-                        <td>{{ obj.record_time }}</td> 
-                    </tr>
-                    {% endfor %}
-                    <tbody>
-                </div> 
-            </div>
-        </div> 
+        <div class="col-xs-6 col-md-3 ibox">
+               <span>服务器总计: {{ host_total_count }}</span>
+        </div>
+        <div class="col-xs-6 col-md-3 ibox">
+               <span>物理机:{{ host_physical_count }} </span>
+        </div>
+        <div class="col-xs-6 col-md-3 ibox">
+               <span>虚拟机：{{ host_vtrul_count }}</span>
+        </div>
+        <div class="col-xs-6 col-md-3 ibox">
+               <span>网络设备: {{ net_hardware_count }}</span>
+        </div>
+
+    </div>
+
+    <div class="table table-bordered table-striped table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>IP</th>
+                <th>CPU</th>
+                <th>Memory</th>
+                <th>DISK</th>
+                <th>Uptime</th>
+                <th>Update Time</th> 
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in  obj_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ obj.ip }}</td>                        
+                <td>{{ obj.cpu }}</td>
+                <td>{{ obj.memory }}</td>
+                <td>{{ obj.disk }}</td>
+                <td>{{ obj.uptime }}</td>
+                <td>{{ obj.record_time }}</td> 
+            </tr>
+            {% endfor %}
+        </tbody>
+    </div> 
+
+    
 
 
 
