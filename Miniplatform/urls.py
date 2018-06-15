@@ -28,4 +28,8 @@ urlpatterns = [
     url(r'^addhost/',views.assets_list,name='assetslist'),
     url(r'^addline/',views.data_list,name='datalist'),
     url(r'^mysqlline/',views.dbstat_list,name='dblist'),
+    url(r'^info/ip/(\d+)/$',views.Host_details,name='hostdetail'),
+    url(r'^info/ip/(?P<hid>\d+)/(?P<interval>\d+)/$',views.get_history_data,name='gethistorydata'),
+#    url(r'^info/ip/(?P<interval>\d+)/$',views.get_history_data,name='gethistorydata'),
+    url(r'^test/(\d+)/$',views.get_table_test,name='gettabletest'),
 ]

@@ -1,4 +1,12 @@
-﻿{% extends 'base.html'%}
+﻿{% extends 'base.html' %}
+{% load  mytags %}
+
+
+{% block title %}
+
+
+{% endblock %}
+
 {% block content %}
 
 <div class="panel panel-default">
@@ -21,25 +29,26 @@
     <div class="panel-body">
             
         <table data-toggle="table">
-        <thead>
-           <tr>
-            <th class="text-center">#</th>
-            <th class="text-center">IP</th>
-            <th class="text-center">类型</th>
-            <th class="text-center">操作系统</th>
-            <th class="text-center">CPU</th>
-            <th class="text-center">内存</th>
-            <th class="text-center">硬盘</th>
-            <th class="text-center">状态</th>
-            <th class="text-center">更新时间</th>
-            <th class="text-center">描述</th>
-           </tr>            
-        </thead>
+            <thead>
+               <tr>
+                <th class="text-center">#</th>
+                <th class="text-center">IP</th>
+                <th class="text-center">类型</th>
+                <th class="text-center">操作系统</th>
+                <th class="text-center">CPU</th>
+                <th class="text-center">内存</th>
+                <th class="text-center">硬盘</th>
+                <th class="text-center">状态</th>
+                <th class="text-center">更新时间</th>
+                <th class="text-center">描述</th>
+               </tr>            
+            </thead>
             <tbody>
             {% for obj in  rep_data %}
               <tr>
                 <td class="text-center">{{ forloop.counter }}</td>
-                <td class="text-center">{{ obj.ipaddr }}</td>                        
+                 
+                <td class="text-center"><a href="{% url 'hostdetail' obj.id %}" text-decoration:none;>{{ obj.ipaddr }}</a></td>            
                 <td class="text-center">{{ obj.get_host_style_display }}</td>
                 <td class="text-center">{{ obj.sys_version }}</td>
                 <td class="text-center">{{ obj.cpu }}</td>
@@ -47,22 +56,90 @@
                 <td class="text-center">{{ obj.disk }}</td>
                 <td class="text-center">{{ obj.get_status_display }}</td>
                 <td class="text-center">{{ obj.date_added }}</td>
-                <td class="text-center">{{ obj.comment }}</td>
+                <td class="text-center">{{ obj.comment|covert_fmt }}</td>
               </tr>   
             {% endfor %}
             </tbody>
         </table>
-
+        <table id="t_hostlist"></table>
     </div>
 </div>
 
+{% endblock %}
 
-
-
+{% block js_script %}
+<script style="text/javascript">
+    <script type="text/javascript"> 
+        $(document).ready(function(){        
+            //monitor_host_list();      
+        }) 
+   
+        function monitor_host_list(){
+          var t =  $('#t_hostlist').bootstrapTable({
+              url: "{% url 'index' %}",
+              method: 'GET',
+              dataType: "json",
+              striped: true,
+              undefinedText : '空',
+              pagination: true,
+              showToggle: "true",
+              showColumns: "true",
+              pageNumber: 1,
+              pageSize: 5,
+              pageList:[5,10],
+              paginationPreText: '上一页',
+              paginationNextText: '下一页',
+              search: false,
+              data_local: "zh-US",
+              sidePagination: "server",
+              queryParams: function(params){
+                  return {
+                    cp: (params.offset/params.limit)+1,
+                    ps: params.limit
+                  };
+              },
+              idField: "id",
+              columns : [{
+                     title: '#',
+                     field: 'id',                     
+                   },{
+                     title: 'IP',
+                     field: 'ip',                 
+                   },{
+                     title: '类型',
+                     field: 'hstyle',
+                   },{
+                     title: '操作系统',
+                     field:  'sysver'
+                   },{
+                     title: 'CPU',
+                     field: 'cpu'               
+                   },{
+                     title: '内存',
+                     field: 'mem'               
+                   },{
+                     title: '硬盘',
+                     field: 'disk'               
+                   },{
+                     title: '状态',
+                     field: 'status'               
+                   },{
+                     title: '更新时间',
+                     field: 'addtime'               
+                   },{
+                     title: '描述',
+                     field: 'context'               
+                   }
+ 
+               ]
+           });
+       
+       
+       }
 
 
     
 
 
-
+</script>
 {% endblock %}

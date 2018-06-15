@@ -1,0 +1,161 @@
+﻿{% extends 'base.html' %}
+{% load mytags %}
+{% block title %}
+    <span ><h3>{{ host_infos.ipaddr }}</h3></span>
+{% endblock %}
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div id="top">
+            <table  data-toggle="table">
+                <thead>
+                    <tr>
+                        <th class="text-center">类型</th>
+                        <th class="text-center">操作系统</th>
+                        <th class="text-center">CPU</th>
+                        <th class="text-center">内存</th>
+                        <th class="text-center">硬盘</th>
+                        <th class="text-center">状态</th>
+                        <th class="text-center">更新时间</th>
+                        <th class="text-center">描述</th>
+                   </tr>            
+                </thead>
+                <tbody>
+                  <tr>                      
+                        <td class="text-center">{{ host_infos.get_host_style_display }}</td>
+                        <td class="text-center">{{ host_infos.sys_version}}</td>
+                        <td class="text-center">{{ host_infos.cpu }}</td>
+                        <td class="text-center">{{ host_infos.memory }}</td>
+                        <td class="text-center">{{ host_infos.disk }}</td>                                               
+                        <td class="text-center">{{ host_infos.get_status_display }}</td>
+                        <td class="text-center">{{ host_infos.date_added|date:"Y-m-d H:i:s" }}</td>
+                        <td class="text-center">{{ host_infos.comment|covert_fmt }}</td>
+                   </tr>   
+                </tbody>
+            </table>        
+        </div>
+        <div id="middle" >    
+            <table  data-toggle="table">
+            
+                <thead>
+                    <tr>
+
+                        <th class="text-center">CPU使用率</th>
+                        <th class="text-center">内存使用率</th>
+                        <th class="text-center">磁盘使用率</th>
+                        <th class="text-center">运行时长</th>
+                        <th class="text-center">更新时间</th>
+
+                   </tr>            
+                </thead>
+                <tbody>
+                  <tr>                      
+                        <td class="text-center">{{ obj_dict.cpu }}</td>
+                        <td class="text-center">{{ obj_dict.memory}}</td>
+                        <td class="text-center">{{ obj_dict.disk | get_disk_detailes }}</td>
+                        <td class="text-center">{{ obj_dict.uptime }}</td>                   
+                        <td class="text-center">{{ obj_dict.record_time|date:"Y-m-d H:i:s" }}</td>
+                        
+                   </tr>   
+                </tbody>
+            </table>           
+        </div>
+        <div id="footer">
+        
+            <button id="clme" class="btn btn-danger">click me</button>
+            <div style="height:400px" id="cpu_charts"></div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+    {% block js_script %}
+    <script type="text/javascript"> 
+        $(document).ready(function(){
+             Mycharts("cpu_charts",7);
+
+        }) 
+        $("#clme").click(function(){
+               Mycharts("cpu_charts",30);
+        });
+      
+        function Mycharts(dom_id,days){
+            var myChart = echarts.init(document.getElementById(dom_id));
+            console.log(myChart)
+            var query_url ="/info/ip/{{obj_dict.id}}/"+days+"/"
+            $.ajax({
+                type:"GET",
+                url : query_url,
+                dataType: 'json',
+                error: function(){                
+                    alert("error");
+                },
+                success: function(data){
+                    var mydata = eval(data)
+                    console.log(mydata["cpu_rs"]) 
+                    console.log(mydata["time_rs"])                    
+                    var option = {  
+                            backgroundColor:"#ffffff",
+                            title:{
+                              text: 'CPU使用率',
+                              texyStyle: { color:"red"},
+                            },
+                            legend:{
+                              show : true,
+                            },
+                            tooltip : {
+                              show : true,
+                              trigger: 'axis',                            
+                            },                            
+                            xAxis:{
+                               name: '单位(小时)',
+                               type: 'time',
+                               splitLine: {
+                                   show: false,
+                               },
+                               data: ['周一','周二','周三','周四','周五','周六','周七','周八']                               
+                            },
+                            yAxis:{
+                                name: '单位(%)',
+                                type: 'value',
+                                max: 100,
+                                minInterval: 1,
+                                splitLine: {
+                                    show: false,
+                                },    
+                            },
+                            series:[{
+                                type: 'line',
+                                name: 'CPU',
+                                data: mydata["cpu_rs"],
+                                markLine:{
+                                    silent: true,
+                                    data: [{
+                                        yAxis: 90,
+                                    }]
+                                },                               
+                            }]                                          
+                        
+                        }                        
+                        myChart.setOption(option);
+                        
+                    }                      
+                  
+            });    
+        }    
+   
+    </script>
+    {% endblock %}
+
+
+
+
+
+    
+
+
+
+
+ 
