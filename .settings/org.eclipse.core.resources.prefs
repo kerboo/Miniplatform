@@ -1,4 +1,7 @@
 eclipse.preferences.version=1
+encoding//app/api.py=utf-8
+encoding//app/middleware.py=utf-8
 encoding//app/models.py=utf-8
 encoding//app/serializer.py=utf-8
 encoding//app/views.py=utf-8
+encoding//client/sysinfo6.py=utf-8

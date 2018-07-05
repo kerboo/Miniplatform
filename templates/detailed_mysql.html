@@ -1,0 +1,320 @@
+﻿{% extends 'base.html' %}
+{% load mytags %}
+{% block title %}
+    <div><span><h3><a href="{%  url 'index' %}">{{ host_infos.ipaddr }}</a></h3></span></div>
+    <div></div>
+{% endblock %}
+{% block content %}
+<div id="top">
+    <table  data-toggle="table">
+        <thead>
+            <tr>
+                <th class="text-center">类型</th>
+                <th class="text-center">操作系统</th>
+                <th class="text-center">CPU</th>
+                <th class="text-center">内存</th>
+                <th class="text-center">硬盘</th>
+                <th class="text-center">状态</th>
+                <th class="text-center">更新时间</th>
+                <th class="text-center">描述</th>
+           </tr>            
+        </thead>
+        <tbody>
+          <tr>                      
+                <td class="text-center">{{ host_infos.get_host_style_display }}</td>
+                <td class="text-center">{{ host_infos.sys_version}}</td>
+                <td class="text-center">{{ host_infos.cpu }}</td>
+                <td class="text-center">{{ host_infos.memory }}</td>
+                <td class="text-center">{{ host_infos.disk }}</td>                                               
+                <td class="text-center">{{ host_infos.get_status_display }}</td>
+                <td class="text-center">{{ host_infos.date_added|date:"Y-m-d H:i:s" }}</td>
+                <td class="text-center">{{ host_infos.comment|covert_fmt }}</td>
+           </tr>   
+        </tbody>
+    </table>        
+</div>
+<div id="footer">
+    <div class="row select_days">
+        <div class="col-md-12">
+            <button id="clme1" class="btn btn-danger">近1天</button>
+            <button id="clme7" class="btn btn-danger">近7天</button>
+            <button id="clme30" class="btn btn-danger">近30天</button>
+            <button id="clme90" class="btn btn-danger">近90天</button>
+            <button id="clme180" class="btn btn-danger">近180天</button>
+        </div>
+    </div>              
+    <div class="row all_charts">
+            <div class="col-md-4" id="process_charts"></div>
+            <div class="col-md-4" id="qtps_charts"></div>
+            <div class="col-md-4" id="buffer_charts"></div>
+    </div>            
+</div>
+
+{% endblock %}
+
+{% block js_script %}
+<script type="text/javascript"> 
+    $(document).ready(function(){
+        Mysqldatacharts("process_charts",30);
+        Mysqlquerycharts("qtps_charts",30);
+        Mysqlbuffercharts("buffer_charts",30);
+
+    }) 
+    $("#clme7").click(function(){
+        Mysqldatacharts("process_charts",7);
+        Mysqlquerycharts("qtps_charts",7);
+        Mysqlbuffercharts("buffer_charts",7);       
+    });
+    $("#clme30").click(function(){
+        Mysqldatacharts("process_charts",30);
+        Mysqlquerycharts("qtps_charts",30);
+        Mysqlbuffercharts("buffer_charts",30);       
+    });
+    $("#clme90").click(function(){
+        Mysqldatacharts("process_charts",90);
+        Mysqlquerycharts("qtps_charts",90);
+        Mysqlbuffercharts("buffer_charts",90);       
+    });
+    $("#clme180").click(function(){
+        Mysqldatacharts("process_charts",180);
+        Mysqlquerycharts("qtps_charts",180);
+        Mysqlbuffercharts("buffer_charts",180); 
+    });
+
+    //#连接数,存活状态,慢查询量
+    function Mysqldatacharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7;
+        var query_url ="/info/dbstat/{{ host_infos.id }}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                             
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: '',
+                          texyStyle: { fontSize:12,color:"red",align:"right"}, 
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:100px;',                            
+                        },
+                        grid:{ left: '6%',right:'15%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: '存活状态',
+                            smooth:true,
+                            data: mydata["process_rs"]["alive_rs"],
+
+                        },{
+                            type: 'line',
+                            name: '连接数',
+                            smooth:true,
+                            data: mydata["process_rs"]["connection_rs"],
+                        },{
+                            type: 'line',
+                            name: '慢查询量',
+                            smooth:true,
+                            data: mydata["process_rs"]["slow_rs"],
+                        }]                                                                
+                  
+                    }                                                                                        
+                myChart.setOption(option);
+            }
+                                    
+        });
+                    
+    }    
+
+    //#QPS,TPS,
+    function Mysqlquerycharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7;
+        var query_url ="/info/dbstat/{{ host_infos.id }}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                             
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: '',
+                          texyStyle: { fontSize:12,color:"red",align:"right"}, 
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:100px;',                            
+                        },
+                        grid:{ left: '6%',right:'15%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: 'QPS',
+                            smooth:true,
+                            data: mydata["qptps_rs"]["qps_rs"],
+
+                        },{
+                            type: 'line',
+                            name: 'TPS',
+                            smooth:true,
+                            data: mydata["qptps_rs"]["tps_rs"],
+                        }]                                                                
+                  
+                    }                                                                                        
+                myChart.setOption(option);
+            }
+                                    
+        });
+                    
+    }
+ 
+    //#buffer使用率,buffer命中率 
+    function Mysqlbuffercharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7;
+        var query_url ="/info/dbstat/{{ host_infos.id }}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                             
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: '',
+                          texyStyle: { fontSize:12,color:"red",align:"right"}, 
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:100px;',                            
+                        },
+                        grid:{ left: '6%',right:'15%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: 'buffer使用率',
+                            smooth:true,
+                            data: mydata["buffer_rs"]["useage_rs"],
+
+                        },{
+                            type: 'line',
+                            name: 'buffer命中率',
+                            smooth:true,
+                            data: mydata["buffer_rs"]["hitrate_rs"],
+                        }]                                                                
+                  
+                    }                                                                                        
+                myChart.setOption(option);
+            }
+                                    
+        });
+                    
+    }
+
+</script>
+{% endblock %}
+
+
+
+
+
+    
+
+
+
+
+ 

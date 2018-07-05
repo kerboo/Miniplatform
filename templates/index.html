@@ -3,8 +3,12 @@
 
 
 {% block title %}
-
-
+      <span>
+        <h3>设备信息</h3>       
+      </span>
+      <div style="position:absolute;right:0px;bottom:0px;width:60px;">
+        <a href="{% url 'addhost' %}">添加设备</a>
+      </div>
 {% endblock %}
 
 {% block content %}
@@ -13,7 +17,7 @@
     <div class="panel-heading">
         <div class="row">
             <div class="col-md-3 ibox">
-                   <span>服务器总计: {{ host_total_count }}</span>
+                   <span>服务器总计: {{ host_total_count }}</span>                   
             </div>
             <div class="col-md-3 ibox">
                    <span>物理机:{{ host_physical_count }} </span>
@@ -39,15 +43,15 @@
                 <th class="text-center">内存</th>
                 <th class="text-center">硬盘</th>
                 <th class="text-center">状态</th>
+                <th class="text-center">MySQL</th>                
                 <th class="text-center">更新时间</th>
                 <th class="text-center">描述</th>
                </tr>            
             </thead>
-            <tbody>
+            <tbody id="rows">
             {% for obj in  rep_data %}
-              <tr>
+              <tr id="{{ obj.id }}">
                 <td class="text-center">{{ forloop.counter }}</td>
-                 
                 <td class="text-center"><a href="{% url 'hostdetail' obj.id %}" text-decoration:none;>{{ obj.ipaddr }}</a></td>            
                 <td class="text-center">{{ obj.get_host_style_display }}</td>
                 <td class="text-center">{{ obj.sys_version }}</td>
@@ -55,6 +59,12 @@
                 <td class="text-center">{{ obj.memory }}</td>
                 <td class="text-center">{{ obj.disk }}</td>
                 <td class="text-center">{{ obj.get_status_display }}</td>
+                <td class="text-center">{% if obj.db_instance == 1 %}
+                                            <a href="{% url 'getdbdetail' obj.id %}">{{ obj.get_db_instance_display }}</a>
+                                        {% else %}
+                                            {{ obj.get_db_instance_display }}
+                                        {% endif %}
+                </td>
                 <td class="text-center">{{ obj.date_added }}</td>
                 <td class="text-center">{{ obj.comment|covert_fmt }}</td>
               </tr>   
@@ -67,12 +77,54 @@
 
 {% endblock %}
 
+
 {% block js_script %}
 <script style="text/javascript">
-    <script type="text/javascript"> 
-        $(document).ready(function(){        
-            //monitor_host_list();      
+
+        $(document).ready(function(){
+                 
+            $.contextMenu({
+                selector: "#rows tr",
+                items: {
+                    "delete" : {
+                        name:"删除",
+                        icon:"delete",
+                        callback:function(){
+                                if(confirm("确认要删除数据吗")){
+                                    console.log($(this).attr('id'));
+                                    var sid = $(this).attr('id');
+                                    var req_url = "{% url 'assetslist' %}";
+                                    $.ajax({
+                                        type : 'DELETE',
+                                        url : req_url,
+                                        data: {"hid":sid},
+                                        datatype : 'json',
+                                        error : function(){
+                                              
+                                        },
+                                        success: function(data){
+                                                    console.log(data);
+                                                    window.location.reload();       
+                                                        
+                                        }
+                                                                       
+                                    });                                                                                    
+                                }else{
+                                    console.log("删除失败");
+                                }
+                                                               
+                        },
+                
+                
+                    }
+                },
+            })
+             
         }) 
+        
+
+        
+
    
         function monitor_host_list(){
           var t =  $('#t_hostlist').bootstrapTable({
@@ -138,7 +190,9 @@
        }
 
 
-    
+
+        
+        
 
 
 </script>

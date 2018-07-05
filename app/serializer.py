@@ -12,7 +12,6 @@ class AssetsSerializer(serializers.ModelSerializer):
 
 
 class MonitorDatasSerializer(serializers.ModelSerializer):
-#    hostid = AssetsSerializer(many=True)
     class Meta:
         model = MonitorDatas
         #fields = '__all__'

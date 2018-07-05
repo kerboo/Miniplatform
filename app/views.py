@@ -1,17 +1,11 @@
 # coding: utf-8
 from django.shortcuts import render
 from app.models import   Assets, MonitorDatas,MysqlInfo
-from app.serializer import MonitorDatasSerializer,AssetsSerializer,MysqlInfoSerializer
-from rest_framework.decorators import api_view 
-from rest_framework.response import Response
-from rest_framework import status
 from django.http.response import HttpResponse
 from django.utils.timezone import now, timedelta
 from django.db.models import Q
 import json
-import datetime
-from pytz import timezone
-from datetime import date
+
 
 
 
@@ -52,68 +46,10 @@ def Index(request):
     result = json.dumps(result)    
 """
    
-   
-
-@api_view(['GET','POST'])
-def assets_list(request):
-    if request.method == 'GET':
-        assets_data = Assets.objects.all()
-        serializer = AssetsSerializer(assets_data,many=True)
-        return Response(serializer.data)
-
-    if request.method == 'POST':
-        serializer = AssetsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
-         
-@api_view(['GET','POST'])
-def data_list(request):    
-    if request.method == 'GET':
-        mdata = MonitorDatas.objects.all()
-        serializer = MonitorDatasSerializer(mdata,many=True)
-        return Response(serializer.data)
-
+def Add_hosts(request):
     
-    elif request.method == 'POST':
-        req_data = request.data
-        if req_data['ip']:
-            host_id = Assets.objects.filter(ipaddr=req_data['ip'])[0].id
-            req_data.pop('ip')
-            req_data['hostid'] =  host_id          
-        else:
-            return HttpResponse("POST argments is errors")
-        
-        serializer = MonitorDatasSerializer(data=req_data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
-@api_view(['GET','POST'])
-def dbstat_list(request):
-    if request.method == 'GET':
-        mdata = MysqlInfo.objects.all()
-        serializer = MysqlInfoSerializer(mdata,many=True)
-        return Response(serializer.data)    
+    return render(request,"add_host.html")   
 
-
-    if request.method == 'POST':
-        req_data = request.data
-        print req_data
-        if req_data['ip'] and req_data['alive']:
-            host_id = Assets.objects.filter(ipaddr=req_data['ip'])[0].id
-            req_data.pop('ip')
-            req_data['hostid'] =  host_id          
-        else:
-            return HttpResponse("POST argments is errors")
-                
-        serializer = MysqlInfoSerializer(data=req_data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
 
 def Host_details(request,hid):
     if not hid:        
@@ -128,14 +64,20 @@ def Host_details(request,hid):
         obj_dict['disk'] = monitor_data_obj.disk_useage
         obj_dict['uptime'] = monitor_data_obj.run_status
         obj_dict['record_time'] = monitor_data_obj.date
-    return render(request,'detailed.html',locals())
-  
+    return render(request,'detailed_host.html',locals())
+ 
+def Mysql_details(request,hid):
+    if not hid:
+        return HttpResponse("parm wrong")
+    host_infos = Assets.objects.filter(id=hid)[0]
+    return render(request,"detailed_mysql.html",locals())
+ 
 def get_history_data(request,hid,interval):
     result = { 
         "time_rs": [],
         "cpu_rs" : [],
         "mem_rs" : [],
-        "disk":{ 
+        "disk_rs":{ 
             "root_rs" : [],
             "home_rs" : [],
             "data_rs" : []
@@ -165,15 +107,14 @@ def get_history_data(request,hid,interval):
             result['cpu_rs'].append(item['cpu_useage'])
             result['mem_rs'].append(item['memory_useage'])
             tmp_disk_dict = eval(item['disk_useage']) 
-            result['disk']['root_rs'].append(tmp_disk_dict['root'])
+            result['disk_rs']['root_rs'].append(tmp_disk_dict['root'])
             if 'home' in tmp_disk_dict.keys():
-                result['disk']['home_rs'].append(tmp_disk_dict['home'])
+                result['disk_rs']['home_rs'].append(tmp_disk_dict['home'])
             if 'data' in tmp_disk_dict.keys():
-                result['disk']['data_rs'].append(tmp_disk_dict['data'])
-            print result      
+                result['disk_rs']['data_rs'].append(tmp_disk_dict['data'])
+     
     result = json.dumps(result)      
     return HttpResponse(result)
-
 
 def get_table_test(request,hid):
     if not hid:
@@ -200,6 +141,53 @@ def get_table_test(request,hid):
     result = json.dumps(result)
     return HttpResponse(result)    
     
-    
-
+def get_mysql_data(request,hid,interval):
+    """
+                定义返回数据格式
+    """ 
+    result = { 
+        "time_rs": [],
+        "process_rs" : {
+            "alive_rs":[],
+            "connection_rs":[],
+            "slow_rs":[],
+            },
+        "qptps_rs" : {
+            "qps_rs":[],
+            "tps_rs":[],
+            },
+        "buffer_rs":{ 
+            "useage_rs" : [],
+            "hitrate_rs" : [],
+            }
+        }    
+    hid = int(hid)
+    if not interval:
+        interval = 7
+    else:
+        interval = int(interval)
+    start = now()
+    if interval == 1:
+        endtime = start - timedelta(hours=24)
+    if interval == 7:    
+        endtime = start - timedelta(days=7)
+    if interval == 30:
+        endtime = start - timedelta(days=30)
+    if interval == 90:
+        endtime = start - timedelta(days=90)
+    if interval == 180:
+        endtime = start - timedelta(days=180)        
+    select_datas = MysqlInfo.objects.filter(Q(hostid=hid) & Q(date__gt=endtime)).values()    
+    if select_datas:
+        for item in select_datas:
+            result['time_rs'].append(item['date'].strftime('%Y-%m-%d %H:%M:%S'))
+            result['process_rs']['alive_rs'].append(item['alive'])
+            result['process_rs']['connection_rs'].append(item['connections'])
+            result['process_rs']['slow_rs'].append(item['slow_query'])
+            result['qptps_rs']['qps_rs'].append(item['qps_useage'])
+            result['qptps_rs']['tps_rs'].append(item['tps_useage'])            
+            result['buffer_rs']['useage_rs'].append(item['buffer_useage'])
+            result['buffer_rs']['hitrate_rs'].append(item['buffer_hitrate'])     
+    result = json.dumps(result)      
+    return HttpResponse(result)
 

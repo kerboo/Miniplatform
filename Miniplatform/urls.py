@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from app import views
-
+from app import api
 
  
 
@@ -25,11 +25,13 @@ from app import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$',views.Index,name='index'),
-    url(r'^addhost/',views.assets_list,name='assetslist'),
-    url(r'^addline/',views.data_list,name='datalist'),
-    url(r'^mysqlline/',views.dbstat_list,name='dblist'),
+    url(r'^addhost/$',views.Add_hosts,name='addhost'),
+    url(r'^gethosts/$',api.assets_list,name='assetslist'),
+    url(r'^getdatas/$',api.data_list,name='datalist'),
+    url(r'^mysqlline/$',api.dbstat_list,name='dblist'),
     url(r'^info/ip/(\d+)/$',views.Host_details,name='hostdetail'),
     url(r'^info/ip/(?P<hid>\d+)/(?P<interval>\d+)/$',views.get_history_data,name='gethistorydata'),
-#    url(r'^info/ip/(?P<interval>\d+)/$',views.get_history_data,name='gethistorydata'),
+    url(r'^info/dbstat/(\d+)/$',views.Mysql_details,name='getdbdetail'),
+    url(r'^info/dbstat/(?P<hid>\d+)/(?P<interval>\d+)/$',views.get_mysql_data,name='getmysqldata'),
     url(r'^test/(\d+)/$',views.get_table_test,name='gettabletest'),
 ]

@@ -1,0 +1,368 @@
+﻿{% extends 'base.html' %}
+{% load mytags %}
+{% block title %}
+    <span><h3><a href="{%  url 'index' %}">{{ host_infos.ipaddr }}</a></h3></span>
+{% endblock %}
+{% block content %}
+<div id="top">
+    <table  data-toggle="table">
+        <thead>
+            <tr>
+                <th class="text-center">类型</th>
+                <th class="text-center">操作系统</th>
+                <th class="text-center">CPU</th>
+                <th class="text-center">内存</th>
+                <th class="text-center">硬盘</th>
+                <th class="text-center">状态</th>
+                <th class="text-center">更新时间</th>
+                <th class="text-center">描述</th>
+           </tr>            
+        </thead>
+        <tbody>
+          <tr>                      
+                <td class="text-center">{{ host_infos.get_host_style_display }}</td>
+                <td class="text-center">{{ host_infos.sys_version}}</td>
+                <td class="text-center">{{ host_infos.cpu }}</td>
+                <td class="text-center">{{ host_infos.memory }}</td>
+                <td class="text-center">{{ host_infos.disk }}</td>                                               
+                <td class="text-center">{{ host_infos.get_status_display }}</td>
+                <td class="text-center">{{ host_infos.date_added|date:"Y-m-d H:i:s" }}</td>
+                <td class="text-center">{{ host_infos.comment|covert_fmt }}</td>
+           </tr>   
+        </tbody>
+    </table>        
+</div>
+<div id="middle" >    
+    <table  data-toggle="table">        
+        <thead>
+            <tr>
+                <th class="text-center">CPU使用率</th>
+                <th class="text-center">内存使用率</th>
+                <th class="text-center">磁盘使用率</th>
+                <th class="text-center">运行时长</th>
+                <th class="text-center">更新时间</th>
+           </tr>            
+        </thead>
+        <tbody>
+          <tr>                      
+                <td class="text-center">{{ obj_dict.cpu }}</td>
+                <td class="text-center">{{ obj_dict.memory}}</td>
+                <td class="text-center">{{ obj_dict.disk | get_disk_detailes }}</td>
+                <td class="text-center">{{ obj_dict.uptime }}</td>                   
+                <td class="text-center">{{ obj_dict.record_time|date:"Y-m-d H:i:s" }}</td>                        
+           </tr>   
+        </tbody>
+    </table>           
+</div>         
+<div id="footer">
+    <div class="row select_days">
+        <div class="col-md-12">
+            <button id="clme1" class="btn btn-danger">近1天</button>
+            <button id="clme7" class="btn btn-danger">近7天</button>
+            <button id="clme30" class="btn btn-danger">近30天</button>
+            <button id="clme90" class="btn btn-danger">近90天</button>
+            <button id="clme180" class="btn btn-danger">近180天</button>
+        </div>
+    </div>              
+    <div class="row all_charts">
+            <div class="col-md-4" id="cpu_charts"></div>
+            <div class="col-md-4" id="mem_charts"></div>
+            <div class="col-md-4" id="disk_charts"></div>
+    </div>            
+</div>
+
+{% endblock %}
+
+{% block js_script %}
+<script type="text/javascript"> 
+    $(document).ready(function(){
+        Mycpucharts("cpu_charts",30);
+        Mymemcharts("mem_charts",30);
+        Mydiskcharts("disk_charts",30);
+
+    }) 
+    $("#clme7").click(function(){
+        Mycpucharts("cpu_charts",7);
+        Mymemcharts("mem_charts",7);
+        Mydiskcharts("disk_charts",7);       
+    });
+    $("#clme30").click(function(){
+        Mycpucharts("cpu_charts",30);
+        Mymemcharts("mem_charts",30);
+        Mydiskcharts("disk_charts",30);       
+    });
+    $("#clme90").click(function(){
+        Mycpucharts("cpu_charts",90);
+        Mymemcharts("mem_charts",90);
+        Mydiskcharts("disk_charts",90);       
+    });
+    $("#clme180").click(function(){
+        Mycpucharts("cpu_charts",180);
+        Mymemcharts("mem_charts",180);
+        Mydiskcharts("disk_charts",180); 
+    });
+
+  
+    function Mycpucharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7;
+        var query_url ="/info/ip/{{obj_dict.id}}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                             
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: 'CPU使用率',
+                          texyStyle: { fontSize:12,color:"red",align:"right"}, 
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:80px;',                            
+                        },
+                        grid:{ left: '6%',right:'15%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: 'CPU',
+                            data: mydata["cpu_rs"],
+                            smooth:true,
+                            symbol: 'none',
+                            sampling: 'average',
+                            itemStyle: {
+                                normal:{
+                                    color: 'rgb(255, 70, 131)'
+                                     }
+                            },
+                            areaStyle: {
+                                normal: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                        offset: 0,
+                                        color: 'rgb(255, 158, 68)'
+                                              }, {
+                                        offset: 1,
+                                        color: 'rgb(255, 70, 131)'
+                                        }])
+                                }
+                            },
+                        }]                                          
+                  
+                    }                                                                                        
+                myChart.setOption(option);
+            }
+                                    
+        });
+                    
+    }    
+
+  //---------memory-------
+    function Mymemcharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7
+        var query_url ="/info/ip/{{obj_dict.id}}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                   
+                var option = option
+                
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: '内存使用率',
+                          texyStyle: { color:"red"},
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:80px;',                          
+                        },
+                        grid:{ left: '6%',right:'15%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },                           
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: 'Memory',
+                            data: mydata["mem_rs"],
+                            smooth:true,
+                            symbol: 'none',
+                            sampling: 'average',
+                            itemStyle: {
+                                normal:{
+                                    color: 'rgb(255, 70, 131)'
+                                     }
+                            },
+                            areaStyle: {
+                                normal: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                        offset: 0,
+                                        color: 'rgb(255, 158, 68)'
+                                              }, {
+                                        offset: 1,
+                                        color: 'rgb(255, 70, 131)'
+                                        }])
+                                }
+                            },
+                        }]                                          
+                  
+                    }                                             
+                
+                myChart.setOption(option);                   
+            }                      
+              
+        });    
+    }
+
+  //-------disk--------
+    function Mydiskcharts(dom_id,days){
+        var myChart = echarts.init(document.getElementById(dom_id));
+        var days = arguments[1]? arguments[1] : 7
+        var query_url ="/info/ip/{{obj_dict.id}}/"+days+"/"
+        $.ajax({
+            type:"GET",
+            url : query_url,
+            dataType: 'json',
+            error: function(){                
+                alert("error");
+            },
+            success: function(data){
+                var mydata = eval(data)                   
+                var option = option
+                console.log(mydata['disk_rs']['home_rs']);
+                var option = {  
+                        backgroundColor:"#ffffff",
+                        title:{
+                          text: '磁盘使用率',
+                          texyStyle: { color:"red"},
+                        },
+                        legend:{
+                          show : true,
+                        },
+                        tooltip : {
+                          show : true,
+                          trigger: 'axis',
+                          extraCssText:'height:100px;',                          
+                        },
+                        grid:{ left: '6%'},                        
+                        xAxis:{
+                           name: '单位(时间)',
+                           type: 'category',
+                           axisLabel:{
+                        //      interval:10,
+                              rotate: -45,
+                              formatter: function(value){return value.split(" ").join("\n")}
+                           },                           
+                           splitLine: {
+                               show: true,
+                            },
+                            boundaryGap: false,                          
+                            data: mydata['time_rs']                            
+                        },
+                        yAxis:{
+                            name: '单位(%)',
+                            type: 'value',
+                            max: 100,
+                            minInterval: 1,
+                            splitLine: {
+                                show: false,
+                            },    
+                        },
+                        series:[{
+                            type: 'line',
+                            name: '/',
+                            smooth:true,
+                            data: mydata["disk_rs"]["root_rs"],
+
+                        },{
+                            type: 'line',
+                            name: '/home',
+                            smooth:true,
+                            data: mydata["disk_rs"]["home_rs"],
+                        },{
+                            type: 'line',
+                            name: '/data',
+                            smooth:true,
+                            data: mydata["disk_rs"]["data_rs"],
+                        }]                                          
+                  
+                    }                                             
+                myChart.setOption(option);                        
+                }                      
+              
+        });    
+    }        
+
+</script>
+{% endblock %}
+
+
+
+
+
+    
+
+
+
+
+ 

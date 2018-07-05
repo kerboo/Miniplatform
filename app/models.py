@@ -21,6 +21,7 @@ WORK_STATUS = {}
 MYSQL_STATUS = (
     (1,u'运行中'),
     (2,u'已停止'),
+    (3,u'无'),
     )
 
 class Assets(models.Model):
@@ -31,6 +32,7 @@ class Assets(models.Model):
     memory = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'内存')
     disk = models.CharField(max_length=1024, blank=True, null=True, verbose_name=u'硬盘')
     status = models.IntegerField(choices=ASSET_STATUS, blank=True, null=True, default=2, verbose_name=u"使用状态")
+    db_instance = models.IntegerField(choices=MYSQL_STATUS, blank=True, null=True, default=3, verbose_name=u"MySQL运行状态")
     date_added = models.DateTimeField(auto_now=True, null=True)
     comment = models.CharField(max_length=128, blank=True, null=True, verbose_name=u"备注")
     
