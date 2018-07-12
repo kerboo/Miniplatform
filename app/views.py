@@ -64,6 +64,8 @@ def Host_details(request,hid):
         obj_dict['disk'] = monitor_data_obj.disk_useage
         obj_dict['uptime'] = monitor_data_obj.run_status
         obj_dict['record_time'] = monitor_data_obj.date
+    else:
+        monitor_data_obj = ""
     return render(request,'detailed_host.html',locals())
  
 def Mysql_details(request,hid):

@@ -12,8 +12,9 @@ import psutil
 import urllib
 import urllib2
 import time
-import MySQLdb
+#import MySQLdb
 import ConfigParser
+
 
 QPS = ''
 TPS = ''
@@ -22,7 +23,7 @@ alive = ''
 slow_q = ''
 cache_u = ''
 cache_h = ''
-filepath = './sysconf6.ini'
+filepath = './sysconf.ini'
 
 def ip_info():
     regex_ip = re.compile(r'(?:[0-9]{1,3}\.){3}[0-9]{1,3}')
@@ -105,7 +106,7 @@ def MySQL_info(Myhost,Myuser,Mypw):
     global cache_u
     global cache_h
 
-    alive_status = subprocess.Popen('mysqladmin -h 127.1 -u root -p'+Mypw+' ping',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+    alive_status = subprocess.Popen('mysqladmin -h 127.0.0.1 -u '+Myuser+' -p'+Mypw+' ping',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
     alive_result = alive_status.communicate()[0].strip( )
     if alive_result == 'mysqld is alive':
         alive = '1'
@@ -142,22 +143,26 @@ def MySQL_info(Myhost,Myuser,Mypw):
 class ReadConfig(object):
     def __init__(self,fpath):
         self.path = fpath
+        self.conf = ConfigParser.SafeConfigParser()
 
-    def getconfig(self):
-        conf = ConfigParser.SafeConfigParser()
-        conf.read(self.path)
-        host = conf.get('mydb','host')
-        user = conf.get('mydb','user')
-        passwd = conf.get('mydb','password')
+    def getconfig(self):        
+        self.conf.read(self.path)
+        host = self.conf.get('mydb','host')
+        user = self.conf.get('mydb','user')
+        passwd = self.conf.get('mydb','password')
         return host,user,passwd
 
     def geturl(self):
-        conf = ConfigParser.SafeConfigParser()
-        conf.read(self.path)
-        sysurl = conf.get('myurl','sysurl') 
-        sqlurl = conf.get('myurl','sqlurl')
+        self.conf.read(self.path)
+        sysurl = self.conf.get('myurl','sysurl') 
+        sqlurl = self.conf.get('myurl','sqlurl')
         return sysurl,sqlurl
-
+    
+    def getip(self):
+        self.conf.read(self.path)
+        sysip = self.conf.get('myip','ip')
+        return sysip
+        
 def filejudge():
     file_result = os.path.isfile(filepath)
     if file_result == False:
@@ -198,19 +203,20 @@ def url_sys():
     datagen,headers = multipart_encode(values)
     request = urllib2.Request(url,datagen,headers)
     print urllib2.urlopen(request).read()
+    
 
 if __name__ == "__main__":
     filejudge()
-########################################################
-    sys_ip = ip_info()
+########################################################    
     sys_cpu = cpu_info()
     sys_mem = mem_info()
     sys_up = uptime_info()
     sys_disk = disk_info()
 ########################################################
     config = ReadConfig(filepath)
+    sys_ip = config.getip()
     host,user,passwd = config.getconfig()
     sys_url,sql_url = config.geturl()
 ########################################################
     url_sys()
-    url_mydb()
+#    url_mydb()
